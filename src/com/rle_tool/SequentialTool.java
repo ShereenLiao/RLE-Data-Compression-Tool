@@ -14,47 +14,40 @@ public class SequentialTool {
             this.files.add(files[i]);
         }
     }
-
+    private StringBuilder result;
     public void run() throws IOException {
-        char lastChar = Character.MIN_VALUE;
-        int lastCount = 0;
         for(int i = 0; i < files.size(); ++i){
             String data = new String(Files.readAllBytes(Paths.get(files.get(i))));
-            PreviousChar ret = compress(data, lastChar, lastCount);
-            lastChar = ret.getPreChar();
-            lastCount = ret.getPreCount();
+            rle(data);
         }
-        System.out.printf(lastCount + String.valueOf(lastChar) );
+        System.out.printf(result.toString());
     }
 
-    private PreviousChar compress(String data, char prevChar, int prevCount){
+
+    public void rle(String data){
+        StringBuilder builder = new StringBuilder();
         int count = 0;
-        char currentChar = Character.MIN_VALUE;//empty char
-        PreviousChar pc = new PreviousChar();
-        boolean firstOutput = true;
+        int preChar = Character.MIN_VALUE;//empty char
         for(int i = 0; i < data.length(); ++i){
             if(i == 0 || data.charAt(i) == data.charAt(i - 1)){
                 ++count;
+            }else{
+                builder.append(count).append(preChar);
+                count = 0;
+                preChar = data.charAt(i);
             }
-            else {
-                if(firstOutput){
-                    if(prevChar == currentChar){
-                        count += prevCount;
-                    }
-                    else if(prevChar != Character.MIN_VALUE){
-                        System.out.println(prevCount+ String.valueOf(prevCount));
-                    }
-                    firstOutput = false;
-                }
-                System.out.printf(count + String.valueOf(currentChar));
-                count = 1;
-            }
-            currentChar = data.charAt(i);
         }
-        pc.setPreChar(currentChar);
-        pc.setPreCount(count);
-        return pc;
+        if(result.length() >= 2 && builder.length() >= 2 && result.charAt(result.length() - 1) == builder.charAt(1)){
+            int new_count = Character.getNumericValue(result.charAt(result.length() - 1)) + Character.getNumericValue(builder.charAt(0));
+            result.setCharAt(result.length() - 2, (char) new_count);
+            result.append(builder.substring(2));
+        }
+        else{
+            result.append(builder);
+        }
     }
+
+
 
 
 
