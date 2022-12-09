@@ -1,8 +1,10 @@
 package com.rle_tool;
 
 import java.nio.MappedByteBuffer;
+import java.util.concurrent.Callable;
 
-public class Task implements Runnable{
+public class Task implements Callable {
+
     private MappedByteBuffer chunk;
     private long size;
     private int id;
@@ -11,10 +13,11 @@ public class Task implements Runnable{
         this.size = size;
         this.id = id;
     }
-    @Override
-    public void run() {
-        rle();
+
+    Task(){
+
     }
+
 
     private StringBuilder rle(){
         int count = 0;
@@ -25,11 +28,17 @@ public class Task implements Runnable{
                 ++count;
             }
             else {
-                builder.append(count).append(String.valueOf((char)currentChar));
+                builder.append(count).append(currentChar);
                 count = 1;
             }
             currentChar = (char)chunk.get(i);
         }
         return builder;
+    }
+
+    @Override
+    public FinishedTask call(){
+        StringBuilder builder =  rle();
+        return new FinishedTask(builder, id);
     }
 }
